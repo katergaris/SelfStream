@@ -79,8 +79,8 @@ function guessLangCode(label) {
 const manifest = {
     id: 'org.selfstream.addon',
     version: '1.1.0',
-    name: 'SelfStream🤌',
-    description: 'SelfStream - Multi-source streaming addon',
+    name: 'GeniuStream',
+    description: 'GeniuStream - Multi-source streaming addon',
     logo: 'https://icv.stremio.dpdns.org/prisonmike.png',
     background: 'https://blog.stremio.com/wp-content/uploads/2022/08/shino-1024x632.png',
     resources: ['stream'],

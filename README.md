@@ -1,4 +1,4 @@
-# SelfStream 🤌
+# GeniuStream
 
 A lightweight, self-hosted Stremio addon with **3 configurable sources**, built-in HLS proxy, multi-language support (40 languages), and automatic subtitle injection.
 
