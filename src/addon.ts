@@ -1,6 +1,7 @@
 const { addonBuilder } = require('stremio-addon-sdk');
 import { getVixSrcStreams } from './vixsrc';
-import { getVixCloudStreams } from './vixcloud';
+import { getAltadefinizioneStreams } from './altadefinizione';
+import { getCb01Streams } from './cb01';
 import { getCinemaCityStreams, extractFreshStreamUrl, FreshStream, SubtitleTrack } from './cinemacity';
 import { decodeProxyToken, resolveUrl, makeProxyToken, getAddonBase } from './proxy';
 import { decodeConfig, UserConfig, DEFAULT_CONFIG } from './config';
@@ -81,30 +82,70 @@ const manifest = {
     logo: 'https://icv.stremio.dpdns.org/prisonmike.png',
     background: 'https://blog.stremio.com/wp-content/uploads/2022/08/shino-1024x632.png',
     resources: ['stream'],
-    types: ['movie', 'series', 'anime'],
-    idPrefixes: ['tmdb:', 'tt', 'kitsu:'],
+    types: ['movie', 'series'],
+    idPrefixes: ['tmdb:', 'tt'],
     catalogs: []
 };
 
 const builder = new addonBuilder(manifest as any);
+
+function normalizeExternalAddonBase(rawUrl: string): string | null {
+    if (!rawUrl) return null;
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+
+    try {
+        const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+        const u = new URL(withProtocol);
+        let path = u.pathname || '/';
+
+        if (path.endsWith('/manifest.json')) {
+            path = path.substring(0, path.length - '/manifest.json'.length) || '/';
+        }
+
+        if (!path.startsWith('/')) path = `/${path}`;
+        if (path.length > 1 && path.endsWith('/')) path = path.substring(0, path.length - 1);
+
+        return `${u.origin}${path}`;
+    } catch {
+        return null;
+    }
+}
+
+async function getExternalAddonStreams(type: string, id: string, addonUrl: string): Promise<any[]> {
+    const base = normalizeExternalAddonBase(addonUrl);
+    if (!base) return [];
+
+    const streamUrl = `${base}/stream/${encodeURIComponent(type)}/${encodeURIComponent(id)}.json`;
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 9000);
+        const resp = await fetch(streamUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!resp.ok) return [];
+        const data = await resp.json() as any;
+        const streams = Array.isArray(data?.streams) ? data.streams : [];
+
+        const cleaned = streams
+            .filter((s: any) => s && typeof s === 'object' && (typeof s.url === 'string' || typeof s.externalUrl === 'string'))
+            .map((s: any) => ({
+                ...s,
+                name: s.name ? `External · ${s.name}` : 'External · Stream',
+                title: s.title || s.description || 'External stream'
+            }));
+
+        return cleaned;
+    } catch {
+        return [];
+    }
+}
 
 // Stream handler that uses user config to decide which sources to query
 async function handleStream(type: string, id: string, userConfig: UserConfig): Promise<any[]> {
     const allStreams: any[] = [];
 
     try {
-        // ── Kitsu (AnimeUnity/VixCloud) ──
-        if (id && id.startsWith('kitsu:')) {
-            if (userConfig.animeunityEnabled) {
-                const parts = id.split(':');
-                const kitsuId = parts[1];
-                const episodeNum = parts[2] || '1';
-                const streams = await getVixCloudStreams(kitsuId, episodeNum);
-                allStreams.push(...streams);
-            }
-            return allStreams;
-        }
-
         if (type === 'movie' || type === 'series') {
             let tmdbId = id;
             let season: string | undefined;
@@ -172,6 +213,44 @@ async function handleStream(type: string, id: string, userConfig: UserConfig): P
                     allStreams.push(...ccStreams);
                 } catch (err) {
                     console.error("[CinemaCity] error:", err);
+                }
+            }
+
+            // ── Altadefinizione (movie-first source) ──
+            if (userConfig.altadefinizioneEnabled && type === 'movie') {
+                try {
+                    const adStreams = await getAltadefinizioneStreams(tmdbId);
+                    for (const s of adStreams) {
+                        s.name = 'Altadefinizione 🤌';
+                        s.title = `🎬 ${mediaTitle || 'Stream'}`;
+                    }
+                    allStreams.push(...adStreams);
+                } catch (err) {
+                    console.error('[Altadefinizione] error:', err);
+                }
+            }
+
+            // ── CB01 (movie source) ──
+            if (userConfig.cb01Enabled && type === 'movie') {
+                try {
+                    const cb01Streams = await getCb01Streams(tmdbId);
+                    for (const s of cb01Streams) {
+                        s.name = 'CB01 🤌';
+                        s.title = `🎬 ${mediaTitle || 'Stream'}`;
+                    }
+                    allStreams.push(...cb01Streams);
+                } catch (err) {
+                    console.error('[CB01] error:', err);
+                }
+            }
+
+            // ── External Stremio Addon ──
+            if (userConfig.externalEnabled && userConfig.externalAddonUrl) {
+                try {
+                    const externalStreams = await getExternalAddonStreams(type, id, userConfig.externalAddonUrl);
+                    allStreams.push(...externalStreams);
+                } catch (err) {
+                    console.error("[ExternalAddon] error:", err);
                 }
             }
         }

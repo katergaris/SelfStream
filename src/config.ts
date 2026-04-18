@@ -52,7 +52,10 @@ export interface UserConfig {
   vixLang: string;
   cinemacityEnabled: boolean;
   cinemacityLang: string;
-  animeunityEnabled: boolean;
+  altadefinizioneEnabled: boolean;
+  cb01Enabled: boolean;
+  externalEnabled: boolean;
+  externalAddonUrl: string;
 }
 
 export const DEFAULT_CONFIG: UserConfig = {
@@ -60,7 +63,10 @@ export const DEFAULT_CONFIG: UserConfig = {
   vixLang: 'en',
   cinemacityEnabled: true,
   cinemacityLang: 'en',
-  animeunityEnabled: false
+  altadefinizioneEnabled: false,
+  cb01Enabled: false,
+  externalEnabled: false,
+  externalAddonUrl: ''
 };
 
 export function encodeConfig(cfg: UserConfig): string {
@@ -75,7 +81,10 @@ export function decodeConfig(token: string): UserConfig {
       vixLang: parsed.vixLang || DEFAULT_CONFIG.vixLang,
       cinemacityEnabled: parsed.cinemacityEnabled === true,
       cinemacityLang: parsed.cinemacityLang || DEFAULT_CONFIG.cinemacityLang,
-      animeunityEnabled: parsed.animeunityEnabled === true
+      altadefinizioneEnabled: parsed.altadefinizioneEnabled === true,
+      cb01Enabled: parsed.cb01Enabled === true,
+      externalEnabled: parsed.externalEnabled === true,
+      externalAddonUrl: typeof parsed.externalAddonUrl === 'string' ? parsed.externalAddonUrl.trim() : DEFAULT_CONFIG.externalAddonUrl
     };
   } catch {
     return { ...DEFAULT_CONFIG };

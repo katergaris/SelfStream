@@ -54,6 +54,8 @@ p.description{font-size:16px;color:var(--text-muted);line-height:1.6;margin-bott
 .source-row.enabled .source-options{max-height:80px}
 .lang-select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-family:'Inter',sans-serif;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 10px center;background-size:16px}
 .lang-select option{background:#1a1a2e;color:#fff}
+.text-input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-family:'Inter',sans-serif}
+.text-input::placeholder{color:rgba(255,255,255,.5)}
 @media(max-width:480px){.card{padding:30px 20px}h1{font-size:28px}}
 </style>
 </head>
@@ -89,10 +91,27 @@ p.description{font-size:16px;color:var(--text-muted);line-height:1.6;margin-bott
     </div>
 </div>
 
-<div class="source-row disabled" id="animeunity-row">
+<div class="source-row disabled" id="altadefinizione-row">
     <div class="source-header">
-        <span class="source-label">🇮🇹 AnimeUnity <span class="source-badge">Only Local and 🇮🇹 · Use Kitsu</span></span>
-        <label class="toggle"><input type="checkbox" id="animeunityEnabled" onchange="toggleSource('animeunity')"><span class="toggle-slider"></span></label>
+        <span class="source-label">🍿 Altadefinizione <span class="source-badge">Movie source</span></span>
+        <label class="toggle"><input type="checkbox" id="altadefinizioneEnabled" onchange="toggleSource('altadefinizione')"><span class="toggle-slider"></span></label>
+    </div>
+</div>
+
+<div class="source-row disabled" id="cb01-row">
+    <div class="source-header">
+        <span class="source-label">📽️ CB01 <span class="source-badge">Movie source</span></span>
+        <label class="toggle"><input type="checkbox" id="cb01Enabled" onchange="toggleSource('cb01')"><span class="toggle-slider"></span></label>
+    </div>
+</div>
+
+<div class="source-row disabled" id="external-row">
+    <div class="source-header">
+        <span class="source-label">🧩 External Addon <span class="source-badge">MammaMia or any Stremio stream addon</span></span>
+        <label class="toggle"><input type="checkbox" id="externalEnabled" onchange="toggleSource('external')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="source-options">
+        <input id="externalAddonUrl" class="text-input" placeholder="https://your-addon/manifest.json">
     </div>
 </div>
 </div>
@@ -118,7 +137,10 @@ function getConfig(){
         vixLang: document.getElementById('vixLang').value,
         cinemacityEnabled: document.getElementById('cinemacityEnabled').checked,
         cinemacityLang: document.getElementById('cinemacityLang').value,
-        animeunityEnabled: document.getElementById('animeunityEnabled').checked
+        altadefinizioneEnabled: document.getElementById('altadefinizioneEnabled').checked,
+        cb01Enabled: document.getElementById('cb01Enabled').checked,
+        externalEnabled: document.getElementById('externalEnabled').checked,
+        externalAddonUrl: document.getElementById('externalAddonUrl').value.trim()
     };
 }
 
