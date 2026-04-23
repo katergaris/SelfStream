@@ -98,7 +98,7 @@ p.description{font-size:16px;color:var(--text-muted);line-height:1.6;margin-bott
 </div>
 
 <div class="button-group">
-    <a href="#" class="btn btn-primary" id="install_button">Install Addon</a>
+    <a href="#" class="btn btn-primary" id="install_button" target="_blank" rel="noopener">Install Addon</a>
     <a href="https://ko-fi.com/G2G41MG3ZN" target="_blank" class="custom-kofi-union">
         <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi"><span>Buy us a beer 🍻</span>
     </a>
@@ -131,6 +131,14 @@ function getManifestUrl(){
     return ADDON_BASE + '/' + encodeConfig(getConfig()) + '/manifest.json';
 }
 
+function getStremioUrl(){
+    return 'stremio://' + getManifestUrl().replace(/^https?:\\/\\//, '');
+}
+
+function updateInstallButton(){
+    document.getElementById('install_button').setAttribute('href', getStremioUrl());
+}
+
 function toggleSource(name){
     var rowId = name + '-row';
     if(name==='vix') rowId = 'vix-row';
@@ -140,6 +148,7 @@ function toggleSource(name){
     var cb = document.getElementById(cbId);
     if(cb.checked){ row.classList.remove('disabled'); row.classList.add('enabled'); }
     else { row.classList.remove('enabled'); row.classList.add('disabled'); }
+    updateInstallButton();
 }
 
 function showToast(msg){
@@ -149,11 +158,10 @@ function showToast(msg){
     setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
 
-document.getElementById('install_button').addEventListener('click', function(e){
-    e.preventDefault();
-    var url = getManifestUrl();
-    window.location.href = 'stremio://' + url.replace(/^https?:\\/\\//, '');
-});
+document.getElementById('vixLang').addEventListener('change', updateInstallButton);
+document.getElementById('cinemacityLang').addEventListener('change', updateInstallButton);
+
+updateInstallButton();
 
 function copyManifest(){
     var url = getManifestUrl();
